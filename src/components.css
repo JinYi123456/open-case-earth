@@ -308,7 +308,10 @@
 
 .hero-globe {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
   z-index: -2;
 }
 
@@ -317,9 +320,9 @@
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(120% 90% at 78% 38%, transparent 0%, rgba(7, 16, 14, 0.55) 52%, rgba(7, 16, 14, 0.92) 100%),
-    linear-gradient(90deg, rgba(7, 16, 14, 0.94) 0%, rgba(7, 16, 14, 0.7) 38%, rgba(7, 16, 14, 0.18) 70%, rgba(7, 16, 14, 0.5) 100%),
-    linear-gradient(0deg, var(--ink) 2%, transparent 30%);
+    radial-gradient(78% 78% at 77% 47%, transparent 0%, transparent 44%, rgba(7, 16, 14, 0.42) 82%, rgba(7, 16, 14, 0.82) 100%),
+    linear-gradient(90deg, var(--ink) 0%, rgba(7, 16, 14, 0.92) 28%, rgba(7, 16, 14, 0.55) 46%, rgba(7, 16, 14, 0.14) 62%, transparent 78%),
+    linear-gradient(0deg, var(--ink) 1%, transparent 24%);
   pointer-events: none;
 }
 
@@ -556,6 +559,37 @@
   font-size: 8.5px;
   letter-spacing: 0.14em;
   pointer-events: none;
+}
+
+.globe-controls {
+  position: absolute;
+  right: 18px;
+  bottom: 50px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.globe-controls .icon-button {
+  width: 36px;
+  height: 36px;
+  color: var(--paper);
+  border-color: var(--line-strong);
+  background: rgba(7, 16, 14, 0.66);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.globe-controls .icon-button:hover {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: rgba(7, 16, 14, 0.88);
+}
+
+.globe-controls .icon-button:active {
+  transform: scale(0.94);
 }
 
 .globe-pin {
@@ -986,16 +1020,18 @@
 
 .how-index {
   position: absolute;
-  top: 18px;
-  right: 20px;
+  top: 13px;
+  right: 18px;
+  z-index: 3;
   font-size: 11px;
-  color: var(--muted-2);
+  color: var(--muted);
   letter-spacing: 0.1em;
 }
 
 .how-visual {
   position: relative;
   height: 132px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3531,6 +3567,19 @@
   .hero {
     justify-content: flex-start;
     padding-top: 92px;
+  }
+  .hero-shade {
+    background:
+      radial-gradient(95% 58% at 50% 24%, transparent 0%, rgba(7, 16, 14, 0.5) 58%, rgba(7, 16, 14, 0.9) 100%),
+      linear-gradient(0deg, var(--ink) 6%, rgba(7, 16, 14, 0.72) 38%, rgba(7, 16, 14, 0.4) 100%);
+  }
+  .globe-controls {
+    right: 12px;
+    bottom: 14px;
+    flex-direction: row;
+  }
+  .globe-caption {
+    display: none;
   }
   .hero-content {
     padding-top: 12px;
