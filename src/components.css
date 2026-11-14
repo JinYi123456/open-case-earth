@@ -1065,9 +1065,9 @@
 .how-visual-chart {
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 10px 14px;
   color: var(--paper);
 }
 

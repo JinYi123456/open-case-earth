@@ -165,7 +165,7 @@ export function Landing({ onStart, onOpenMethod, onOpenData }: LandingProps) {
               <span className="how-index mono">02</span>
               <div className="how-visual how-visual-chart">
                 <span className="how-chart-label mono">air temperature · °C</span>
-                <Sparkline points={DEMO_POINTS} color="var(--amber)" width={260} height={96} />
+                <Sparkline points={DEMO_POINTS} color="var(--amber)" width={260} height={72} />
                 <span className="how-chart-end mono">+0.24 / decade</span>
               </div>
               <h3 className="display-md">Read the record</h3>
