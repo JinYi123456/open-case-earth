@@ -77,7 +77,7 @@ describe('analysisFromMonthly', () => {
   it('produces a percentile-based verdict in both directions', () => {
     const monthly = buildMonthly((year) => 20 + (year - 1991) * 0.2)
     const analysis = analysisFromMonthly(monthly, VARIABLE_MAP.T2M)
-    const verdict = buildVerdict('Test Point', VARIABLE_MAP.T2M, analysis)
+    const verdict = buildVerdict('Test Point', VARIABLE_MAP.T2M, analysis, [])
     expect(verdict.title).toBe('Significant warming')
     expect(verdict.tone).toBe('up')
     expect(verdict.summary).toContain('Test Point')
@@ -86,7 +86,7 @@ describe('analysisFromMonthly', () => {
 
     const solar = VARIABLE_MAP.ALLSKY_SFC_SW_DWN
     const dimming = analysisFromMonthly(buildMonthly((year) => 20 - (year - 1991) * 0.05), solar)
-    const down = buildVerdict('Dimming Point', solar, dimming)
+    const down = buildVerdict('Dimming Point', solar, dimming, [])
     expect(down.title).toBe('Significant dimming')
     expect(down.tone).toBe('down')
     expect(down.summary).toContain('dimmed by 0.500 MJ/m² per decade')
@@ -98,10 +98,43 @@ describe('analysisFromMonthly', () => {
       20 + Math.sin((year - 1990) * 2.4 + month * 1.7),
     )
     const analysis = analysisFromMonthly(monthly, VARIABLE_MAP.T2M)
-    const verdict = buildVerdict('Noise Point', VARIABLE_MAP.T2M, analysis)
+    const verdict = buildVerdict('Noise Point', VARIABLE_MAP.T2M, analysis, [])
     if (!analysis.trend.significant) {
       expect(verdict.title).toBe('No clear trend')
       expect(verdict.tone).toBe('flat')
     }
+    expect(verdict.strength).toBe(
+      analysis.trend.significant ? verdict.strength : 'unresolved',
+    )
+  })
+
+  it('grades the verdict from the evidence board, not the p value alone', () => {
+    const analysis = analysisFromMonthly(
+      buildMonthly((year) => 20 + (year - 1991) * 0.2),
+      VARIABLE_MAP.T2M,
+    )
+    expect(analysis.trend.significant).toBe(true)
+
+    const check = (status: 'pass' | 'partial' | 'fail') => ({
+      id: status,
+      label: status,
+      value: '',
+      detail: '',
+      status,
+    })
+    const strong = buildVerdict('Test Point', VARIABLE_MAP.T2M, analysis, [
+      check('pass'), check('pass'), check('pass'), check('pass'), check('pass'), check('pass'),
+    ])
+    expect(strong.title).toBe('Significant warming')
+    expect(strong.strength).toBe('established')
+    expect(strong.supportLine).toBe('6 of 6 evidence checks support this reading')
+
+    const weak = buildVerdict('Test Point', VARIABLE_MAP.T2M, analysis, [
+      check('pass'), check('fail'), check('fail'), check('fail'), check('fail'), check('partial'),
+    ])
+    expect(weak.title).toBe('Significant warming')
+    expect(weak.strength).toBe('tentative')
+    expect(weak.summary).toContain('stays tentative')
+    expect(weak.supportLine).toBe('1.5 of 6 evidence checks support this reading')
   })
 })

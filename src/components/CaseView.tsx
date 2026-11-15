@@ -52,10 +52,6 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
   const url = shareUrl(config)
   const number = caseNumber(`${config.place.name}:${config.variable}`)
 
-  const verdict = useMemo(
-    () => (data.analysis ? buildVerdict(config.place.name, variable, data.analysis) : null),
-    [data.analysis, config.place.name, variable],
-  )
   const spatial = useMemo(() => summarizeSpatial(data.grid), [data.grid])
   const evidence = useMemo(
     () =>
@@ -63,6 +59,13 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
         ? buildEvidence(data.analysis, variable, spatial, data.gridComplete)
         : [],
     [data.analysis, variable, spatial, data.gridComplete],
+  )
+  const verdict = useMemo(
+    () =>
+      data.analysis
+        ? buildVerdict(config.place.name, variable, data.analysis, evidence)
+        : null,
+    [data.analysis, config.place.name, variable, evidence],
   )
 
   useEffect(() => {
@@ -266,6 +269,12 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
               {verdict.title}
             </span>
           </div>
+          <div className="verdict-grade">
+            <span className={`grade-chip grade-${verdict.strength}`}>
+              {verdict.strengthLabel}
+            </span>
+            <span className="mono verdict-support">{verdict.supportLine}</span>
+          </div>
           <h2 className="verdict-title display-lg">{headline}</h2>
           <p className="verdict-summary">{verdict.summary}</p>
 
@@ -296,8 +305,8 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
             </div>
             <div className="verdict-stat">
               <span className="mono">Confidence</span>
-              <strong className="num">{confidenceFromP(analysis.trend.p)}</strong>
-              <span className="mono">p = {pValue(analysis.trend.p)}</span>
+              <strong className="num">{confidenceFromP(analysis.trend.pAdjusted)}</strong>
+              <span className="mono">p = {pValue(analysis.trend.pAdjusted)} · serial-corrected</span>
             </div>
           </div>
 
@@ -398,7 +407,10 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
           title="One point is not a pattern."
           aside={
             <span className="mono section-aside-note">
-              {SCOPES[config.scope].label} · ±{SCOPES[config.scope].extent}° · 25 cells
+              {SCOPES[config.scope].label} · ±{SCOPES[config.scope].extent}° ·{' '}
+              {data.gridComplete && spatial.total < spatial.samples
+                ? `${spatial.samples} samples · ${spatial.total} cells`
+                : `${data.gridTotal} samples`}
             </span>
           }
         />
@@ -420,7 +432,11 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
                 {spatial.significant}
                 <small>/{data.gridComplete ? spatial.total : data.gridTotal}</small>
               </span>
-              <p>cells survive false-discovery control</p>
+              <p>
+                {data.gridComplete && spatial.total < spatial.samples
+                  ? 'independent cells survive false-discovery control'
+                  : 'cells survive false-discovery control'}
+              </p>
             </div>
 
             <div className="mosaic-direction">
@@ -474,9 +490,11 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
             <p className="mosaic-note">
               {data.gridComplete
                 ? data.gridFailures > 0
-                  ? `${data.gridFailures} cells could not be read. The remaining cells are adjusted together at a 5% false-discovery rate.`
-                  : 'All 25 cells were read and adjusted together at a 5% false-discovery rate. Muted cells did not survive the correction.'
-                : `Reading the surrounding grid — ${data.grid.length} of ${data.gridTotal} cells so far. Colours are provisional until the false-discovery adjustment completes.`}
+                  ? `${data.gridFailures} of ${data.gridTotal} samples could not be read. The ${spatial.total} independent cells behind the rest are adjusted together at a 5% false-discovery rate.`
+                  : spatial.total < spatial.samples
+                    ? `${spatial.samples} samples resolve to ${spatial.total} independent model cells, because the native grid is coarser than this spacing. The correction runs on those ${spatial.total} cells at a 5% false-discovery rate, so repeated samples are never counted twice.`
+                    : `All ${spatial.total} cells are independent and were adjusted together at a 5% false-discovery rate. Muted cells did not survive the correction.`
+                : `Reading the surrounding grid — ${data.grid.length} of ${data.gridTotal} samples so far. Colours are provisional until the false-discovery adjustment completes.`}
             </p>
           </aside>
         </div>

@@ -135,23 +135,44 @@ function MethodContent() {
         <p>
           The test asks whether the ordering of annual values drifts monotonically. It is
           rank-based, so it does not assume a normal distribution. Repeated values are corrected
-          with a tie term in the variance. Significance is set at p &lt; 0.05 with at least 15
-          complete years.
+          with a tie term in the variance.
         </p>
         <code>S = Σ sgn(yⱼ − yᵢ)</code>
         <code>p = 2 · (1 − Φ(|z|))</code>
+        <p>
+          Climate years are not independent: a warm year tends to follow a warm year, which leaves
+          the uncorrected variance too small and the evidence too strong. The variance is therefore
+          corrected with Hamed–Rao. The series is first detrended with the Sen slope so a real trend
+          is not mistaken for persistence, the residual ranks are autocorrelated at every lag, and
+          only lags outside the 95% white-noise band ±1.96/√n contribute.
+        </p>
+        <code>n/n* = 1 + [2 / n(n−1)(n−2)] · Σ (n−k)(n−k−1)(n−k−2) ρ(k)</code>
+        <code>Var*(S) = Var(S) · n/n*</code>
+        <p>
+          Significance is judged on that corrected p at p &lt; 0.05 with at least 15 complete years.
+          The evidence board shows the lag-1 correlation and the variance factor, so a correction
+          that changed nothing is as visible as one that did. Pre-whitening is deliberately not
+          used: removing lag-1 persistence from a trending series also removes part of the trend.
+        </p>
       </section>
 
       <section>
         <span className="drawer-step mono">04 · the grid</span>
         <h3>One point is not a pattern.</h3>
         <p>
-          A five-by-five equal-angle grid spans the selected area. Each cell is analysed with the
-          same record and the same test. Because twenty-five tests raise the chance of a
-          coincidence, p-values are adjusted together with the Benjamini–Hochberg procedure at a
-          5% false-discovery rate.
+          A five-by-five equal-angle grid spans the selected area. Each sample is analysed with the
+          same record and the same test. Because repeated tests raise the chance of a coincidence,
+          p-values are adjusted together with the Benjamini–Hochberg procedure at a 5%
+          false-discovery rate.
         </p>
         <code>q = p · m / rank, enforced monotone</code>
+        <p>
+          At the local spacing the samples are finer than the model grid, so several of them return
+          the same cell. Samples that resolve to an identical annual series are collapsed before the
+          adjustment, and m counts independent cells rather than samples — otherwise one cell would
+          be counted as separate evidence several times and the correction would be too generous.
+          The panel reports both numbers.
+        </p>
         <p>
           Cells that do not survive the correction are drawn muted. The grid is a spatial check,
           not a claim about every point inside a cell.
@@ -167,7 +188,15 @@ function MethodContent() {
           <li>Do Sen and least-squares agree?</li>
           <li>Is the record complete enough to be read at all?</li>
         </ul>
-        <p>These checks become the evidence board. A verdict without them is only a slope.</p>
+        <p>
+          These checks become the evidence board, and the board sets the grade printed on the
+          verdict. A confirmed check scores one point, a partial check a half. With a significant
+          test, 85% or more of the settled checks reads as <strong>Established</strong>, 60% or more
+          as <strong>Probable</strong>, and anything lower as <strong>Tentative</strong>. Without a
+          significant test the grade is <strong>Unresolved</strong>, whatever the slope looks like.
+          Checks still collecting are left out of the denominator rather than counted as failures.
+        </p>
+        <p>A verdict without these checks is only a slope.</p>
       </section>
 
       <section className="drawer-caution">
@@ -191,8 +220,9 @@ function MethodContent() {
             months.
           </li>
           <li>
-            The Mann–Kendall confidence interval is approximate under autocorrelation. The test is
-            robust to non-normality, not to every dependence structure.
+            The Hamed–Rao correction addresses serial correlation in the mean, not long-memory
+            persistence, a step change inside the record, or cross-correlation between neighbouring
+            cells. The rank-based interval remains an approximation.
           </li>
           <li>
             Neighbouring grid cells are correlated, so false-discovery control is conservative

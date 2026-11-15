@@ -14,7 +14,8 @@ import type {
 } from '../types'
 import { VARIABLE_MAP } from '../data/variables'
 import { confidenceFromP, fmt, pValue, signed } from './format'
-import { mean, olsSlope, trendFromPoints } from './stats'
+import { STRENGTH_LABEL, evidenceScore, evidenceStrength, type EvidenceRow } from './evidence'
+import { mean, benjaminiHochberg, olsSlope, trendFromPoints } from './stats'
 import {
   RECORD_END_YEAR,
   RECORD_START_YEAR,
@@ -225,6 +226,7 @@ export function buildVerdict(
   placeName: string,
   def: VariableDef,
   analysis: PointAnalysis,
+  evidence: EvidenceRow[],
 ): Verdict {
   const { trend } = analysis
   const tone = trend.significant ? (trend.direction === 'down' ? 'down' : 'up') : 'flat'
@@ -241,23 +243,66 @@ export function buildVerdict(
   const change = `${signed(analysis.modelledChange, def.decimals, def.annualUnit)}`
   const verb = trend.direction === 'down' ? def.downVerb : def.upVerb
 
-  const summary = trend.significant
-    ? `${def.short} at ${placeName} ${verb} by ${magnitude} between ${analysis.first.year} and ${analysis.latest.year} — a modelled change of ${change} across the record. The ordering is unlikely to be chance (Mann–Kendall p = ${pValue(trend.p)}).`
-    : `${def.short} at ${placeName} moved by ${rate} between ${analysis.first.year} and ${analysis.latest.year}, but the record cannot separate that from natural variability (Mann–Kendall p = ${pValue(trend.p)}).`
+  const strength = evidenceStrength(evidence, trend.significant)
+  const settled = evidence.filter((row) => row.status !== 'pending')
+  const score = evidenceScore(settled)
+  const scoreText = score % 1 === 0 ? String(score) : score.toFixed(1)
+  const supportLine =
+    settled.length === 0
+      ? 'Cross-checks still running'
+      : `${scoreText} of ${settled.length} evidence checks support this reading`
+
+  const base = trend.significant
+    ? `${def.short} at ${placeName} ${verb} by ${magnitude} between ${analysis.first.year} and ${analysis.latest.year} — a modelled change of ${change} across the record. The ordering is unlikely to be chance (Mann–Kendall p = ${pValue(trend.pAdjusted)}, corrected for serial correlation).`
+    : `${def.short} at ${placeName} moved by ${rate} between ${analysis.first.year} and ${analysis.latest.year}, but the record cannot separate that from natural variability (Mann–Kendall p = ${pValue(trend.pAdjusted)}, corrected for serial correlation).`
+
+  const qualifier =
+    strength === 'established'
+      ? ' The cross-checks agree, so the reading is graded established.'
+      : strength === 'probable'
+        ? ' Some cross-checks only partly agree, so the reading is graded probable rather than established.'
+        : strength === 'tentative'
+          ? ' The cross-checks disagree often enough that the reading stays tentative.'
+          : ''
 
   return {
     title,
     tone,
-    summary,
-    confidenceLine: `${confidenceFromP(trend.p)} confidence · p = ${pValue(trend.p)}`,
+    strength,
+    strengthLabel: STRENGTH_LABEL[strength],
+    supportLine,
+    summary: `${base}${qualifier}`,
+    confidenceLine: `${confidenceFromP(trend.pAdjusted)} confidence · p = ${pValue(trend.pAdjusted)}`,
   }
 }
 
+/**
+ * A 5x5 sample can be finer than the native model grid, so several samples may
+ * resolve to one cell. Counting them as independent evidence would understate
+ * the false-discovery correction, so the adjustment runs on unique cells only.
+ */
+export function adjustGrid(cells: GridCell[]): GridCell[] {
+  if (cells.length === 0) return []
+  const representatives: GridCell[] = []
+  const indexByKey = new Map<string, number>()
+  for (const cell of cells) {
+    if (indexByKey.has(cell.cellKey)) continue
+    indexByKey.set(cell.cellKey, representatives.length)
+    representatives.push(cell)
+  }
+  const { q } = benjaminiHochberg(representatives.map((cell) => cell.pAdjusted))
+  return cells.map((cell) => {
+    const value = q[indexByKey.get(cell.cellKey) ?? 0]
+    return { ...cell, q: value, significant: value <= 0.05 }
+  })
+}
+
 export function summarizeSpatial(cells: GridCell[]): SpatialSummary {
-  const total = cells.length
-  if (total === 0) {
+  const samples = cells.length
+  if (samples === 0) {
     return {
       total: 0,
+      samples: 0,
       significant: 0,
       up: 0,
       down: 0,
@@ -267,24 +312,32 @@ export function summarizeSpatial(cells: GridCell[]): SpatialSummary {
       weakest: null,
     }
   }
+  const seen = new Set<string>()
+  const unique = cells.filter((cell) => {
+    if (seen.has(cell.cellKey)) return false
+    seen.add(cell.cellKey)
+    return true
+  })
+  const total = unique.length
   let up = 0
   let down = 0
   let flat = 0
   let significant = 0
-  for (const cell of cells) {
+  for (const cell of unique) {
     if (cell.direction === 'up') up += 1
     else if (cell.direction === 'down') down += 1
     else flat += 1
     if (cell.significant) significant += 1
   }
-  const strongest = cells.reduce((a, b) =>
+  const strongest = unique.reduce((a, b) =>
     Math.abs(b.slopePerDecade) > Math.abs(a.slopePerDecade) ? b : a,
   )
-  const weakest = cells.reduce((a, b) =>
+  const weakest = unique.reduce((a, b) =>
     Math.abs(b.slopePerDecade) < Math.abs(a.slopePerDecade) ? b : a,
   )
   return {
     total,
+    samples,
     significant,
     up,
     down,
@@ -293,15 +346,6 @@ export function summarizeSpatial(cells: GridCell[]): SpatialSummary {
     strongest,
     weakest,
   }
-}
-
-export function seasonalAgreement(analysis: PointAnalysis): number {
-  const headline = analysis.trend.direction
-  if (headline === 'flat') return 0
-  const matching = analysis.seasonal.filter(
-    (season) => season.direction === headline && season.significant,
-  ).length
-  return matching / analysis.seasonal.length
 }
 
 export function trendFor(monthly: MonthlyRecord, def: VariableDef): TrendStats {

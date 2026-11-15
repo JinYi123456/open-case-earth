@@ -7,8 +7,7 @@ import type {
   SignalSummary,
   VariableId,
 } from '../types'
-import { analysisFromMonthly, signalFor } from './analysis'
-import { benjaminiHochberg } from './stats'
+import { adjustGrid, analysisFromMonthly, signalFor } from './analysis'
 import {
   fetchMonthly,
   makeGrid,
@@ -133,10 +132,14 @@ export function useCaseData(config: CaseConfig): CaseData {
             lon: point.lon,
             slopePerDecade: cellAnalysis.trend.slopePerDecade,
             p: cellAnalysis.trend.p,
-            q: cellAnalysis.trend.p,
-            significant: cellAnalysis.trend.p < 0.05,
+            pAdjusted: cellAnalysis.trend.pAdjusted,
+            q: cellAnalysis.trend.pAdjusted,
+            significant: cellAnalysis.trend.significant,
             direction: cellAnalysis.trend.direction,
             years: cellAnalysis.trend.n,
+            cellKey: cellAnalysis.annual.points
+              .map((seriesPoint) => seriesPoint.value.toFixed(9))
+              .join('|'),
           } satisfies GridCell
         },
         (cell) => {
@@ -147,12 +150,7 @@ export function useCaseData(config: CaseConfig): CaseData {
       )
       if (!current()) return
       const usable = results.filter((cell): cell is GridCell => cell !== null)
-      const { q } = benjaminiHochberg(usable.map((cell) => cell.p))
-      const finalized = usable.map((cell, index) => ({
-        ...cell,
-        q: q[index],
-        significant: q[index] <= 0.05,
-      }))
+      const finalized = adjustGrid(usable)
       gridCache.set(cacheKey, finalized)
       setGrid(finalized)
       setGridFailures(failures)

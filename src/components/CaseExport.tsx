@@ -89,6 +89,9 @@ export function CaseExport({
         <div className="export-middle">
           <div className="export-verdict-wrap">
             <span className="export-stamp">{verdict.title}</span>
+            <span className={`grade-chip grade-${verdict.strength}`}>
+              {verdict.strengthLabel}
+            </span>
             <span className="export-confidence mono">{verdict.confidenceLine}</span>
           </div>
           <div className="export-rate">

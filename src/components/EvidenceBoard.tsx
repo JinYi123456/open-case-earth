@@ -1,12 +1,8 @@
-import type { EvidenceRow } from '../lib/evidence'
+import { evidenceScore, type EvidenceRow } from '../lib/evidence'
 import { StatusChip } from './ui'
 
 export function EvidenceBoard({ rows }: { rows: EvidenceRow[] }) {
-  const points = rows.reduce((total, row) => {
-    if (row.status === 'pass') return total + 1
-    if (row.status === 'partial') return total + 0.5
-    return total
-  }, 0)
+  const points = evidenceScore(rows)
   const partials = rows.filter((row) => row.status === 'partial').length
   const cleared = rows.filter((row) => row.status === 'pass').length
 

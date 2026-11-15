@@ -1,11 +1,11 @@
 import type {
+  EvidenceStrength,
   PointAnalysis,
   SpatialSummary,
   TrendDirection,
   VariableDef,
 } from '../types'
 import { pValue, signed } from './format'
-import { seasonalAgreement } from './analysis'
 
 export type EvidenceStatus = 'pass' | 'partial' | 'fail' | 'pending'
 
@@ -23,6 +23,48 @@ function directionWord(direction: TrendDirection): string {
   return 'flat'
 }
 
+export function evidenceScore(rows: EvidenceRow[]): number {
+  return rows.reduce((total, row) => {
+    if (row.status === 'pass') return total + 1
+    if (row.status === 'partial') return total + 0.5
+    return total
+  }, 0)
+}
+
+/**
+ * The headline trend and the weight of evidence behind it are different
+ * questions: a significant p value with contested spatial or seasonal support
+ * is reported as probable, not established.
+ */
+export function evidenceStrength(
+  rows: EvidenceRow[],
+  significant: boolean,
+): EvidenceStrength {
+  if (!significant) return 'unresolved'
+  const settled = rows.filter((row) => row.status !== 'pending')
+  if (settled.length === 0) return 'tentative'
+  const share = evidenceScore(settled) / settled.length
+  if (share >= 0.85) return 'established'
+  if (share >= 0.6) return 'probable'
+  return 'tentative'
+}
+
+export const STRENGTH_LABEL: Record<EvidenceStrength, string> = {
+  established: 'Established',
+  probable: 'Probable',
+  tentative: 'Tentative',
+  unresolved: 'Unresolved',
+}
+
+export function seasonalAgreement(analysis: PointAnalysis): number {
+  const headline = analysis.trend.direction
+  if (headline === 'flat') return 0
+  const matching = analysis.seasonal.filter(
+    (season) => season.direction === headline && season.significant,
+  ).length
+  return matching / analysis.seasonal.length
+}
+
 export function buildEvidence(
   analysis: PointAnalysis,
   def: VariableDef,
@@ -32,13 +74,18 @@ export function buildEvidence(
   const { trend } = analysis
   const rows: EvidenceRow[] = []
 
+  const persistence =
+    trend.varianceFactor > 1.001
+      ? `Serial persistence inflates the variance by ×${trend.varianceFactor.toFixed(2)}, which moves p from ${pValue(trend.p)} to ${pValue(trend.pAdjusted)}.`
+      : trend.varianceFactor < 0.999
+        ? `Anti-persistent residuals shrink the variance by ×${trend.varianceFactor.toFixed(2)}, giving p = ${pValue(trend.pAdjusted)} from a raw ${pValue(trend.p)}.`
+        : `No residual lag clears the white-noise band, so the Hamed–Rao correction leaves p = ${pValue(trend.pAdjusted)} unchanged.`
+
   rows.push({
     id: 'significance',
     label: 'Statistical signal',
     value: trend.significant ? 'Established' : 'Not established',
-    detail: trend.significant
-      ? `Mann–Kendall p = ${pValue(trend.p)} against a 0.05 threshold.`
-      : `p = ${pValue(trend.p)}. Natural variability is still a plausible explanation.`,
+    detail: `Mann–Kendall against a 0.05 threshold, corrected for serial correlation (Hamed–Rao). Lag-1 r = ${trend.lag1.toFixed(2)}. ${persistence}`,
     status: trend.significant ? 'pass' : 'fail',
   })
 
@@ -52,11 +99,15 @@ export function buildEvidence(
     })
   } else {
     const agreement = spatial.agreement
+    const resolution =
+      spatial.total < spatial.samples
+        ? `${spatial.samples} samples resolve to ${spatial.total} independent model cells; the correction runs once per cell.`
+        : `All ${spatial.total} cells are independent at this spacing.`
     rows.push({
       id: 'spatial',
       label: 'Spatial agreement',
       value: `${spatial.up + spatial.down} of ${spatial.total} aligned`,
-      detail: `${spatial.significant} cells survive false-discovery control. The dominant direction is ${directionWord(
+      detail: `${spatial.significant} of ${spatial.total} independent cells survive false-discovery control. ${resolution} The dominant direction is ${directionWord(
         spatial.up >= spatial.down ? 'up' : 'down',
       )}.`,
       status: agreement >= 0.8 ? 'pass' : agreement >= 0.6 ? 'partial' : 'fail',

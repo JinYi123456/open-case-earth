@@ -1733,6 +1733,40 @@
   max-width: 16ch;
 }
 
+.verdict-grade {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.grade-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 5px 11px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+
+.grade-established { color: #1c6f63; background: rgba(79, 209, 197, 0.18); }
+.grade-probable { color: #8a5320; background: rgba(242, 166, 90, 0.2); }
+.grade-tentative { color: #8c3c1c; background: rgba(228, 87, 46, 0.16); }
+.grade-unresolved { color: #4a5a52; background: rgba(7, 16, 14, 0.07); }
+
+.verdict-support {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(7, 16, 14, 0.6);
+}
+
+.verdict-grade + .verdict-title {
+  margin-top: 14px;
+}
+
 .verdict-summary {
   color: rgba(7, 16, 14, 0.78);
   font-size: 16px;

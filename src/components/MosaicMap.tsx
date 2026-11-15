@@ -55,7 +55,7 @@ function buildCollection(cells: GridCell[], extent: number, variable: VariableDe
           color: cellColor(cell, variable),
           opacity: cell.significant ? 0.68 : 0.18,
           slope: cell.slopePerDecade,
-          p: cell.p,
+          p: cell.pAdjusted,
           q: cell.q,
           significant: cell.significant,
           direction: cell.direction,
@@ -77,7 +77,7 @@ function popupHtml(
   return `<div class="map-popup">
     <span class="map-popup-kicker">GRID CELL · ${formatCoords(cell.lat, cell.lon)}</span>
     <strong>${signed(cell.slope, variable.slopeDecimals, variable.slopeUnit)} / decade</strong>
-    <span class="map-popup-row">p = ${pValue(cell.p)} · q = ${pValue(cell.q)}</span>
+    <span class="map-popup-row">p (corrected) = ${pValue(cell.p)} · q = ${pValue(cell.q)}</span>
     <span class="map-popup-status ${cell.significant ? 'is-on' : ''}">${status}</span>
   </div>`
 }

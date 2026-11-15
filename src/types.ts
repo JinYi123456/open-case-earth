@@ -136,14 +136,18 @@ export interface GridCell {
   lon: number
   slopePerDecade: number
   p: number
+  pAdjusted: number
   q: number
   significant: boolean
   direction: TrendDirection
   years: number
+  /** Identical for samples that resolve to the same native model cell. */
+  cellKey: string
 }
 
 export interface SpatialSummary {
   total: number
+  samples: number
   significant: number
   up: number
   down: number
@@ -153,9 +157,14 @@ export interface SpatialSummary {
   weakest: GridCell | null
 }
 
+export type EvidenceStrength = 'established' | 'probable' | 'tentative' | 'unresolved'
+
 export interface Verdict {
   title: string
   tone: 'up' | 'down' | 'flat'
+  strength: EvidenceStrength
+  strengthLabel: string
+  supportLine: string
   summary: string
   confidenceLine: string
 }
