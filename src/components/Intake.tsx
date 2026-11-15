@@ -257,7 +257,7 @@ export function Intake({ pickedPlace, onPlacePick, onStart, compact = false }: I
       {selected && (
         <div className="intake-selected">
           <span className="selected-pulse" />
-          <span>
+          <span className="selected-text">
             <strong>{selected.name}</strong>
             <span className="mono">{formatCoords(selected.lat, selected.lon)}</span>
           </span>
