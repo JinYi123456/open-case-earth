@@ -4,8 +4,9 @@
 
 - **Live app** — <https://open-case-earth.vercel.app/>
 - **Source** — <https://github.com/JinYi123456/open-case-earth>
-- **Walkthrough** — a 2 min 59 s continuous screen recording of one full case, from place search
-  through the record, the spatial grid, the seasonal lens and the evidence board.
+- **Walkthrough** — <https://youtu.be/SP3VFS-zw9M> — a 2 min 58 s continuous screen recording of
+  one full case, from place search through the record, the spatial grid, the seasonal lens and
+  the evidence board.
 
 Open Case: Earth is a planetary-forensics tool. Pick any place on Earth, pull thirty-five years
 of open Earth-system data, and read the trend as a case file: a verdict, the rate of change,
