@@ -530,7 +530,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
           index="06"
           eyebrow="Landscape context"
           title="The ground beneath the trend."
-          aside={<span className="mono section-aside-note">MODIS Terra · 2002 vs 2024</span>}
+          aside={<span className="mono section-aside-note">MODIS Terra · 250 m true color</span>}
         />
         <LandscapeCompare
           lat={config.place.lat}

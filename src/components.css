@@ -2622,6 +2622,146 @@
   gap: 14px;
 }
 
+.landscape-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(23, 49, 40, 0.55), rgba(11, 26, 22, 0.55));
+}
+
+.lc-years {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.lc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lc-label {
+  color: var(--muted-2);
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lc-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.lc-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 92px;
+  padding: 8px 30px 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  background: rgba(7, 16, 14, 0.72);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.lc-select select:hover {
+  border-color: var(--amber);
+  color: var(--amber-2);
+}
+
+.lc-select svg {
+  position: absolute;
+  right: 10px;
+  color: var(--amber);
+  pointer-events: none;
+}
+
+.lc-select select option {
+  background: #0b1a16;
+  color: var(--paper);
+}
+
+.lc-arrow {
+  padding-bottom: 9px;
+  color: var(--amber);
+  font-size: 14px;
+}
+
+.lc-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lc-preset {
+  padding: 8px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.lc-preset:hover {
+  color: var(--paper);
+  border-color: var(--line-strong);
+}
+
+.lc-preset.is-active {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.compare-skeleton {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background-image:
+    linear-gradient(rgba(241, 232, 215, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(241, 232, 215, 0.05) 1px, transparent 1px),
+    radial-gradient(120% 90% at 50% 118%, rgba(79, 209, 197, 0.12), transparent 62%);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+}
+
+.compare-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: -40% -10%;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgba(242, 166, 90, 0.13) 50%,
+    transparent 62%
+  );
+  animation: compare-sweep 2600ms ease-in-out infinite;
+}
+
+@keyframes compare-sweep {
+  0% { transform: translateX(-38%); }
+  100% { transform: translateX(38%); }
+}
+
 .compare-shell {
   position: relative;
   aspect-ratio: 3 / 2;
@@ -2705,17 +2845,75 @@
 .compare-loading {
   position: absolute;
   inset: 0;
-  z-index: 4;
+  z-index: 6;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   padding: 24px;
   text-align: center;
   background: rgba(7, 16, 14, 0.7);
   color: var(--muted);
   font-size: 9px;
   letter-spacing: 0.1em;
+  pointer-events: none;
+}
+
+.compare-loading-text {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--paper);
+}
+
+.compare-loading-text em {
+  color: var(--muted-2);
+  font-style: normal;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+}
+
+.compare-partial {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 6;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(7, 16, 14, 0.82);
+  backdrop-filter: blur(6px);
+  color: var(--muted);
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.compare-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid var(--amber);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--amber);
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.compare-retry:hover {
+  background: var(--amber);
+  color: var(--ink);
 }
 
 .compare-range {
@@ -3668,6 +3866,27 @@
   }
   .landscape-caption .mono {
     text-align: left;
+  }
+  .landscape-controls {
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 14px;
+  }
+  .lc-years {
+    align-content: flex-start;
+    gap: 10px;
+  }
+  .lc-field {
+    flex: 1 1 96px;
+  }
+  .lc-select select {
+    width: 100%;
+    min-width: 0;
+  }
+  .lc-arrow {
+    display: none;
   }
 }
 

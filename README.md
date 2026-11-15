@@ -28,7 +28,8 @@ key, no server-side verdict.
   and estimator agreement.
 - **Eight signals** — temperature, rainfall, soil wetness, solar irradiance, cloud cover,
   humidity, wind, and snow depth at the same point.
-- **Landscape context** — a MODIS Terra true-color comparison, 2002 vs 2024.
+- **Landscape context** — a MODIS Terra true-color swipe comparison with selectable years
+  (2000–2025) and month, opening on July 2002 vs July 2024.
 - **Export** — a shareable case card (PNG) with a QR code back to the live analysis, plus a
   permalink for every case.
 

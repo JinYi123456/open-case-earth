@@ -298,9 +298,14 @@ function DataContent() {
         <span className="drawer-step mono">Imagery</span>
         <h3>NASA GIBS · MODIS Terra true color</h3>
         <p>
-          The landscape comparison uses two single-day MODIS Terra corrected-reflectance images,
-          15 July 2002 and 15 July 2024, requested from the GIBS WMS at 900 × 600 pixels. Clouds and
-          swath edges are retained because the images are context, not evidence for the trend.
+          The landscape comparison uses two single-day MODIS Terra corrected-reflectance images
+          requested from the GIBS WMS at 900 × 600 pixels. Both years and the month are yours to
+          choose, from 2000 to 2025; the case opens on 15 July 2002 against 15 July 2024. January and
+          February 2000 are disabled because they predate Terra's first granules. If a requested day
+          has no coverage, the next days are tried in order — +1, +2, +3, +4, +6, +9 — and the tag
+          shows the date actually returned. Clouds and swath edges are retained because the images
+          are context, not evidence for the trend. The satellite record therefore covers less of the
+          span than the 1991–2025 statistical record.
         </p>
         <a
           className="drawer-link"
@@ -366,7 +371,8 @@ function DataContent() {
           Research Center. Accessed {ACCESSED}.
         </code>
         <code>
-          NASA GIBS. MODIS Terra Corrected Reflectance True Color, 15 July 2002 and 15 July 2024.
+          NASA GIBS. MODIS Terra Corrected Reflectance True Color, selected days 2000–2025
+          (default 15 July 2002 and 15 July 2024).
         </code>
       </section>
     </div>
