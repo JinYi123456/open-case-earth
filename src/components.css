@@ -1523,6 +1523,14 @@
   color: var(--paper);
 }
 
+.footer-method a {
+  color: var(--paper);
+}
+
+.footer-method a svg:last-child {
+  color: var(--amber);
+}
+
 .footer-fine {
   margin-top: 6px;
   color: var(--teal);

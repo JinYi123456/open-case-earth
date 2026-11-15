@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowUpRight, Database, FunctionSquare, Menu, X } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, Code2, Database, FunctionSquare, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import type { CaseConfig } from '../types'
 import { LogoMark } from './Icons'
@@ -169,6 +169,15 @@ export function Footer({
             <Database size={13} />
             Every record is cited
           </button>
+          <a
+            href="https://github.com/JinYi123456/open-case-earth"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Code2 size={13} />
+            Source code · MIT
+            <ArrowUpRight size={12} />
+          </a>
           <span className="footer-fine mono">No account · no key · no tracking</span>
         </div>
       </div>
