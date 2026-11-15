@@ -58,6 +58,16 @@ function sign(value: number): number {
   return value > 0 ? 1 : value < 0 ? -1 : 0
 }
 
+function range(values: number[]): number {
+  let low = Number.POSITIVE_INFINITY
+  let high = Number.NEGATIVE_INFINITY
+  for (const value of values) {
+    if (value < low) low = value
+    if (value > high) high = value
+  }
+  return values.length === 0 ? 0 : high - low
+}
+
 export function varianceS(values: number[]): number {
   const n = values.length
   if (n < 2) return 0
@@ -123,7 +133,11 @@ export function senSlope(points: XY[]): number {
   return median(pairwiseSlopes(points))
 }
 
-/** Rank-based Sen confidence interval (Sen, 1968). */
+/**
+ * Rank-based Sen confidence interval, equation 2.6 of Sen (1968). Ranks are
+ * 1-based, so the upper rank carries a +1; omitting it narrows the interval by
+ * one pairwise slope.
+ */
 export function senConfidenceInterval(
   points: XY[],
   alpha = 0.05,
@@ -135,7 +149,7 @@ export function senConfidenceInterval(
   const width = zCrit * Math.sqrt(variance)
   const n = slopes.length
   const lowIndex = Math.max(1, Math.round((n - width) / 2))
-  const highIndex = Math.min(n, Math.round((n + width) / 2))
+  const highIndex = Math.min(n, Math.round((n + width) / 2) + 1)
   return [slopes[lowIndex - 1], slopes[highIndex - 1]]
 }
 
@@ -153,13 +167,82 @@ export function olsSlope(points: XY[]): { slope: number; intercept: number } {
   return { slope, intercept: my - slope * mx }
 }
 
+function averageRanks(values: number[]): number[] {
+  const order = values.map((value, index) => ({ value, index }))
+  order.sort((a, b) => a.value - b.value)
+  const ranks = new Array<number>(values.length)
+  let start = 0
+  while (start < order.length) {
+    let end = start
+    while (end + 1 < order.length && order[end + 1].value === order[start].value) end += 1
+    const rank = (start + end + 2) / 2
+    for (let k = start; k <= end; k += 1) ranks[order[k].index] = rank
+    start = end + 1
+  }
+  return ranks
+}
+
+/** Biased autocorrelation estimate: divisor n, as in the standard acf. */
+export function autocorrelation(values: number[], lag: number): number {
+  const n = values.length
+  if (lag <= 0) return 1
+  if (lag >= n) return 0
+  const m = mean(values)
+  let denominator = 0
+  for (const value of values) denominator += (value - m) ** 2
+  if (denominator === 0) return 0
+  let numerator = 0
+  for (let t = 0; t + lag < n; t += 1) {
+    numerator += (values[t] - m) * (values[t + lag] - m)
+  }
+  return numerator / denominator
+}
+
+/**
+ * Hamed & Rao (1998) variance inflation n/n*. The series is detrended with the
+ * Sen slope first, so a genuine trend is not mistaken for serial persistence;
+ * only residual lags outside the 95% white-noise band contribute.
+ */
+export function serialCorrectionFactor(
+  points: XY[],
+  slopePerYear: number,
+): { factor: number; lags: number } {
+  const n = points.length
+  if (n < 10) return { factor: 1, lags: 0 }
+  const detrended = points.map((p) => p.y - slopePerYear * p.x)
+  const residualSpread = range(detrended)
+  // On a straight line the residuals are floating-point dust, and their ranks
+  // would encode rounding noise rather than persistence.
+  if (residualSpread <= 1e-9 * Math.max(range(points.map((p) => p.y)), 1)) {
+    return { factor: 1, lags: 0 }
+  }
+  const ranks = averageRanks(detrended)
+  const bound = 1.959964 / Math.sqrt(n)
+  let total = 0
+  let lags = 0
+  for (let k = 1; k < n; k += 1) {
+    const r = autocorrelation(ranks, k)
+    if (Math.abs(r) <= bound) continue
+    total += (n - k) * (n - k - 1) * (n - k - 2) * r
+    lags += 1
+  }
+  const factor = 1 + (2 * total) / (n * (n - 1) * (n - 2))
+  return { factor: Math.max(factor, 0.05), lags }
+}
+
 export function trendFromPoints(points: SeriesPoint[]): TrendStats {
   const xs: XY[] = points.map((point) => ({ x: point.year, y: point.value }))
-  const mk = mannKendall(points.map((point) => point.value))
+  const values = points.map((point) => point.value)
+  const mk = mannKendall(values)
   const slope = senSlope(xs)
   const [ciLow, ciHigh] = senConfidenceInterval(xs)
   const ols = olsSlope(xs)
   const slopePerDecade = slope * 10
+  const { factor, lags } = serialCorrectionFactor(xs, slope)
+  const correctedVariance = varianceS(values) * factor
+  const numerator = mk.s > 0 ? mk.s - 1 : mk.s < 0 ? mk.s + 1 : 0
+  const zAdjusted = correctedVariance > 0 ? numerator / Math.sqrt(correctedVariance) : 0
+  const pAdjusted = twoSidedP(zAdjusted)
   return {
     slopePerYear: slope,
     slopePerDecade,
@@ -171,7 +254,12 @@ export function trendFromPoints(points: SeriesPoint[]): TrendStats {
     s: mk.s,
     tau: mk.tau,
     n: points.length,
-    significant: mk.p < 0.05 && points.length >= 15,
+    pAdjusted,
+    zAdjusted,
+    varianceFactor: factor,
+    serialLags: lags,
+    lag1: autocorrelation(values, 1),
+    significant: pAdjusted < 0.05 && points.length >= 15,
     direction: mk.direction,
   }
 }

@@ -90,6 +90,11 @@ export interface TrendStats {
   s: number
   tau: number
   n: number
+  pAdjusted: number
+  zAdjusted: number
+  varianceFactor: number
+  serialLags: number
+  lag1: number
   significant: boolean
   direction: TrendDirection
 }
