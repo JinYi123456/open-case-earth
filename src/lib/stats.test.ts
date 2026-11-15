@@ -16,6 +16,10 @@ describe('mannKendall', () => {
     expect(result.tau).toBe(1)
     expect(result.direction).toBe('up')
     expect(result.p).toBeLessThan(1e-6)
+
+    const longest = mannKendall(Array.from({ length: 35 }, (_, index) => index + 1))
+    expect(longest.p).toBeGreaterThan(0)
+    expect(Number.isFinite(longest.p)).toBe(true)
   })
 
   it('detects a perfect decreasing series', () => {

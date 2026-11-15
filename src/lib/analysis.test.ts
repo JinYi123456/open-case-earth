@@ -74,14 +74,23 @@ describe('analysisFromMonthly', () => {
     expect(djf?.points[0].value).toBeCloseTo(6, 10)
   })
 
-  it('produces a percentile-based verdict', () => {
+  it('produces a percentile-based verdict in both directions', () => {
     const monthly = buildMonthly((year) => 20 + (year - 1991) * 0.2)
     const analysis = analysisFromMonthly(monthly, VARIABLE_MAP.T2M)
     const verdict = buildVerdict('Test Point', VARIABLE_MAP.T2M, analysis)
     expect(verdict.title).toBe('Significant warming')
     expect(verdict.tone).toBe('up')
     expect(verdict.summary).toContain('Test Point')
+    expect(verdict.summary).toContain('rose by 2.000 °C per decade')
     expect(verdict.confidenceLine).toContain('confidence')
+
+    const solar = VARIABLE_MAP.ALLSKY_SFC_SW_DWN
+    const dimming = analysisFromMonthly(buildMonthly((year) => 20 - (year - 1991) * 0.05), solar)
+    const down = buildVerdict('Dimming Point', solar, dimming)
+    expect(down.title).toBe('Significant dimming')
+    expect(down.tone).toBe('down')
+    expect(down.summary).toContain('dimmed by 0.500 MJ/m² per decade')
+    expect(down.summary).not.toContain('by +')
   })
 
   it('does not call noise a trend', () => {

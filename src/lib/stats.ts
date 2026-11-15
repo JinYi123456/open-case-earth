@@ -19,30 +19,39 @@ export function median(values: number[]): number {
   return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
 }
 
-/** Abramowitz & Stegun 7.1.26 — plenty accurate for p-value display. */
-function erf(x: number): number {
-  const sign = x < 0 ? -1 : 1
-  const ax = Math.abs(x)
-  const a1 = 0.254829592
-  const a2 = -0.284496736
-  const a3 = 1.421413741
-  const a4 = -1.453152027
-  const a5 = 1.061405429
-  const p = 0.3275911
-  const t = 1 / (1 + p * ax)
-  const y =
-    1 -
-    ((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t * Math.exp(-ax * ax)
-  return sign * y
-}
-
-export function normalCdf(z: number): number {
-  return 0.5 * (1 + erf(z / Math.SQRT2))
+/**
+ * Chebyshev complementary error function (Numerical Recipes, 3rd ed.).
+ * Relative accuracy ~1e-7 across the whole range, so the far tail of a strong
+ * trend stays representable instead of cancelling to exactly zero.
+ */
+function erfc(x: number): number {
+  const z = Math.abs(x)
+  const t = 2 / (2 + z)
+  const ty = 4 * t - 2
+  const cof = [
+    -1.3026537197817094, 0.6419697923564902, 0.019476473204185836,
+    -0.00956151478680863, -0.000946595344482036, 0.000366839497852761,
+    0.000042523324806907, -0.000020278578112534, -0.000001624290004647,
+    0.00000130365583558, 1.5626441722e-8, -8.5238095915e-8,
+    6.529054439e-9, 5.059343495e-9, -9.91364156e-10,
+    -2.27365122e-10, 9.6467911e-11, 2.394038e-12,
+    -6.886027e-12, 8.94487e-13, 3.13092e-13,
+    -1.12708e-13, 3.81e-16, 7.106e-15,
+  ]
+  let d = 0
+  let dd = 0
+  for (let j = cof.length - 1; j > 0; j -= 1) {
+    const tmp = d
+    d = ty * d - dd + cof[j]
+    dd = tmp
+  }
+  const ans = t * Math.exp(-z * z + 0.5 * (cof[0] + ty * d) - dd)
+  return x >= 0 ? ans : 2 - ans
 }
 
 export function twoSidedP(z: number): number {
   if (z === 0) return 1
-  return Math.min(1, Math.max(0, 2 * (1 - normalCdf(Math.abs(z)))))
+  return Math.min(1, Math.max(0, erfc(Math.abs(z) / Math.SQRT2)))
 }
 
 function sign(value: number): number {

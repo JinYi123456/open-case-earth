@@ -13,7 +13,7 @@ import type {
   Verdict,
 } from '../types'
 import { VARIABLE_MAP } from '../data/variables'
-import { confidenceFromP, pValue, signed } from './format'
+import { confidenceFromP, fmt, pValue, signed } from './format'
 import { mean, olsSlope, trendFromPoints } from './stats'
 import {
   RECORD_END_YEAR,
@@ -236,12 +236,13 @@ export function buildVerdict(
       ? 'Record too short'
       : 'No clear trend'
 
-  const rate = `${signed(Math.abs(trend.slopePerDecade), def.slopeDecimals, def.slopeUnit)} per decade`
+  const magnitude = `${fmt(Math.abs(trend.slopePerDecade), def.slopeDecimals)}${def.slopeUnit ? ` ${def.slopeUnit}` : ''} per decade`
+  const rate = `${signed(trend.slopePerDecade, def.slopeDecimals, def.slopeUnit)} per decade`
   const change = `${signed(analysis.modelledChange, def.decimals, def.annualUnit)}`
   const verb = trend.direction === 'down' ? def.downVerb : def.upVerb
 
   const summary = trend.significant
-    ? `${def.short} at ${placeName} ${verb} by ${rate} between ${analysis.first.year} and ${analysis.latest.year} — a modelled change of ${change} across the record. The ordering is unlikely to be chance (Mann–Kendall p = ${pValue(trend.p)}).`
+    ? `${def.short} at ${placeName} ${verb} by ${magnitude} between ${analysis.first.year} and ${analysis.latest.year} — a modelled change of ${change} across the record. The ordering is unlikely to be chance (Mann–Kendall p = ${pValue(trend.p)}).`
     : `${def.short} at ${placeName} moved by ${rate} between ${analysis.first.year} and ${analysis.latest.year}, but the record cannot separate that from natural variability (Mann–Kendall p = ${pValue(trend.p)}).`
 
   return {
