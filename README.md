@@ -2,6 +2,10 @@
 
 **Every place leaves a record.**
 
+- **Live app** — <https://open-case-earth.vercel.app/>
+- **Source** — <https://github.com/JinYi123456/open-case-earth>
+- **Walkthrough** — a 30-second screen recording of one full case: <https://youtu.be/2uEYAag6gvQ>
+
 Open Case: Earth is a planetary-forensics tool. Pick any place on Earth, pull four decades
 of open Earth-system data, and read the trend as a case file: a verdict, the rate of change,
 the spatial pattern, the seasonal lens, and the evidence that decides whether the finding
@@ -20,7 +24,8 @@ key, no server-side verdict.
   Benjamini–Hochberg false-discovery control so coincidence cannot pose as pattern.
 - **Seasonal lens** — DJF / MAM / JJA / SON trends, because the annual average hides the calendar.
 - **Evidence board** — six checks that try to break the claim: significance, spatial agreement,
-  seasonal agreement, completeness, a withheld-period robustness check, and estimator agreement.
+  seasonal agreement, completeness, endpoint robustness (drop the first and last three years),
+  and estimator agreement.
 - **Eight signals** — temperature, rainfall, soil wetness, solar irradiance, cloud cover,
   humidity, wind, and snow depth at the same point.
 - **Landscape context** — a MODIS Terra true-color comparison, 2002 vs 2024.
@@ -73,7 +78,10 @@ npm run lint       # oxlint
 ## Stack
 
 Vite · React 19 · TypeScript (strict) · Tailwind CSS v4 · MapLibre GL (globe projection) ·
-Vitest. Typefaces: Instrument Serif, Space Grotesk, JetBrains Mono.
+Framer Motion · Lucide icons · html-to-image and qrcode (case-card export) · Vitest · oxlint.
+
+Typefaces — Instrument Serif, Space Grotesk, JetBrains Mono — are self-hosted through Fontsource,
+so the app makes no font requests to a third-party CDN.
 
 ## Project layout
 
