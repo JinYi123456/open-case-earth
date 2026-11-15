@@ -76,6 +76,8 @@ project and is not affiliated with NASA.
 
 ## Run locally
 
+Requires Node 22.12+ or 24.x (the Vitest 5 engine range).
+
 ```bash
 npm install
 npm run dev        # start the dev server
@@ -85,6 +87,9 @@ npm test           # statistics + analysis unit tests
 npm run typecheck  # strict TypeScript check
 npm run lint       # oxlint
 ```
+
+The 40 unit tests pin Sen's slope and the Hamed–Rao corrected `p` against reference values
+from SciPy and pymannkendall, so a refactor cannot silently move the statistics.
 
 ## Stack
 
