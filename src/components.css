@@ -740,8 +740,14 @@
   background: rgba(9, 20, 17, 0.97);
   backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
-  overflow: hidden;
+  max-height: min(430px, calc(100svh - 96px));
+  overflow-y: auto;
   animation: reveal 200ms ease forwards;
+}
+
+.intake-suggest.is-up {
+  top: auto;
+  bottom: calc(100% + 8px);
 }
 
 .suggest-row {

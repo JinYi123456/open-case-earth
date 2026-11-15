@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FormEvent, KeyboardEvent } from 'react'
 import { ArrowUpRight, Search, X } from 'lucide-react'
 import { SCOPES, VARIABLES, isScopeId, isVariableId } from '../data/variables'
@@ -36,6 +36,8 @@ export function Intake({ pickedPlace, onPlacePick, onStart, compact = false }: I
   const [scope, setScope] = useState<ScopeId>('local')
   const inputRef = useRef<HTMLInputElement>(null)
   const skipSearch = useRef(false)
+  const suggestRef = useRef<HTMLDivElement>(null)
+  const [dropUp, setDropUp] = useState(false)
 
   useEffect(() => {
     if (!pickedPlace) return
@@ -80,6 +82,22 @@ export function Intake({ pickedPlace, onPlacePick, onStart, compact = false }: I
       controller.abort()
     }
   }, [query, selected])
+
+  // The hero sits low in the first screen, so a downward list would open past the
+  // fold. Flip it above the bar whenever there is no room below.
+  useLayoutEffect(() => {
+    const el = suggestRef.current
+    const bar = inputRef.current?.parentElement
+    if (!open || suggestions.length === 0 || !el || !bar) return
+    const update = () => {
+      const b = bar.getBoundingClientRect()
+      const h = el.offsetHeight
+      setDropUp(b.bottom + 8 + h > window.innerHeight - 8 && b.top - 8 - h > 8)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [open, suggestions])
 
   const scopeInfo = useMemo(() => SCOPES[scope], [scope])
 
@@ -199,7 +217,13 @@ export function Intake({ pickedPlace, onPlacePick, onStart, compact = false }: I
       </div>
 
       {open && suggestions.length > 0 && (
-        <div className="intake-suggest" id="place-suggestions" role="listbox" aria-label="Place matches">
+        <div
+          className={`intake-suggest ${dropUp ? 'is-up' : ''}`}
+          id="place-suggestions"
+          role="listbox"
+          aria-label="Place matches"
+          ref={suggestRef}
+        >
           {suggestions.map((place, index) => (
             <button
               key={`${place.name}-${place.lat}-${place.lon}`}
