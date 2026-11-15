@@ -118,8 +118,8 @@ export function Footer({
             <span className="serif">Open Case: Earth</span>
           </div>
           <p>
-            Four decades of open Earth records, read as a case file. Pick a place, test a trend,
-            and see the evidence that decides the verdict.
+            Thirty-five years of open Earth records, read as a case file. Pick a place, test a
+            trend, and see the evidence that decides the verdict.
           </p>
           <span className="footer-note mono">
             Independent open-data project · NASA data, not affiliated with NASA
@@ -182,7 +182,7 @@ export function Footer({
         </div>
       </div>
       <div className="container footer-bottom mono">
-        <span>1991–2025 · 35 annual records · 8 Earth signals</span>
+        <span>1991–2025 · 8 Earth signals · solar and cloud from 2001</span>
         <span>Runs in your browser</span>
       </div>
     </footer>

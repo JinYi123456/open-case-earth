@@ -63,7 +63,7 @@ export function Landing({ onStart, onOpenMethod, onOpenData }: LandingProps) {
               <span>leaves a record.</span>
             </h1>
             <p className="lede hero-lede reveal" style={{ animationDelay: '260ms' }}>
-              Open four decades of NASA Earth data for any place on Earth. Find the trend, see
+              Open thirty-five years of NASA Earth data for any place on Earth. Find the trend, see
               where it changed, and test whether the evidence is significant.
             </p>
 
@@ -73,13 +73,13 @@ export function Landing({ onStart, onOpenMethod, onOpenData }: LandingProps) {
 
             <div className="hero-facts reveal" style={{ animationDelay: '480ms' }}>
               <span>
-                <strong>35</strong> annual records
+                <strong>25–35</strong> annual values
               </span>
               <span>
                 <strong>8</strong> Earth signals
               </span>
               <span>
-                <strong>25</strong> grid cells tested
+                <strong>25</strong> grid samples tested
               </span>
               <span>
                 <strong>95%</strong> confidence standard
@@ -170,8 +170,9 @@ export function Landing({ onStart, onOpenMethod, onOpenData }: LandingProps) {
               </div>
               <h3 className="display-md">Read the record</h3>
               <p>
-                Thirty-five annual values, rebuilt from monthly observations. Seasonal lenses and
-                a surrounding grid show where the average hides the story.
+                Annual values rebuilt from monthly observations — thirty-five years for the
+                reanalysis signals, twenty-five for satellite radiation. Seasonal lenses and a
+                surrounding grid show where the average hides the story.
               </p>
               <span className="how-tag mono">
                 <ScanLine size={12} /> 1991—2025
@@ -312,7 +313,10 @@ export function Landing({ onStart, onOpenMethod, onOpenData }: LandingProps) {
             <div className="formula-card">
               <span className="mono">03 · the grid</span>
               <strong>False-discovery control</strong>
-              <p>Twenty-five local tests, adjusted together so coincidence cannot pose as pattern.</p>
+              <p>
+                Local samples are collapsed to independent model cells, then adjusted together so
+                coincidence cannot pose as pattern.
+              </p>
               <code>q = p · m / rank</code>
             </div>
             <div className="method-sources">

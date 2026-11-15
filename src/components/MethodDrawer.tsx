@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { ArrowUpRight, Database, FunctionSquare, X } from 'lucide-react'
 import { VARIABLES } from '../data/variables'
+import { RECORD_END_YEAR } from '../lib/power'
 import { LogoMark } from './Icons'
 
 export type DrawerMode = 'method' | 'data'
@@ -99,7 +100,7 @@ function MethodContent() {
 
       <section>
         <span className="drawer-step mono">01 · the record</span>
-        <h3>Thirty-five annual values, rebuilt from monthly observations.</h3>
+        <h3>Annual values, rebuilt from monthly observations.</h3>
         <p>
           Each point is a NASA POWER monthly grid cell sampled at the case coordinate — MERRA-2
           reanalysis for the atmospheric and land signals, satellite radiation for solar and cloud.
@@ -109,9 +110,15 @@ function MethodContent() {
           <li>Mean variables: annual mean of the valid monthly values.</li>
           <li>Rainfall: sum of monthly rates × days in each month, in millimetres per year.</li>
           <li>Completeness rule: 10 valid months for means, 12 for sums.</li>
-          <li>Baseline for anomalies: the 1991–2020 mean.</li>
+          <li>
+            Window: 1991–2025 for the reanalysis signals, 2001–2025 for solar and cloud. The
+            radiation pair changes upstream product in 2001, and testing across that boundary
+            would read the product step as a trend.
+          </li>
+          <li>Baseline for anomalies: the 1991–2020 mean, or 2001–2020 for the radiation pair.</li>
         </ul>
-        <code>record = monthly(1990–2025) → annual(1991–2025)</code>
+        <code>record = monthly(1990–2025) → annual(recordStart…2025)</code>
+        <code>recordStart = 1991 reanalysis · 2001 satellite radiation</code>
       </section>
 
       <section>
@@ -212,8 +219,9 @@ function MethodContent() {
             0.5° × 0.625°, the radiation products on a 1° grid. Local exposure can differ.
           </li>
           <li>
-            Solar and cloud switch upstream product in 2001, from GEWEX SRB to CERES SYN1deg. A
-            small step at that boundary is possible, so read radiation trends with extra care.
+            Solar and cloud switch upstream product in 2001, from GEWEX SRB to CERES SYN1deg. The
+            SRB era is excluded from the test rather than blended into it, which leaves those two
+            signals with 25 years instead of 35 and a shorter baseline.
           </li>
           <li>
             Annual aggregation hides extremes. A flat annual mean can still contain more violent
@@ -277,7 +285,12 @@ function DataContent() {
                 <span className="mono">{variable.id}</span>
               </span>
               <span className="mono">{variable.annualUnit}</span>
-              <span className="mono">{variable.aggregate === 'sum' ? 'Sum' : 'Mean'}</span>
+              <span className="mono data-annual">
+                <span>{variable.aggregate === 'sum' ? 'Sum' : 'Mean'}</span>
+                <span>
+                  {variable.recordStart}–{RECORD_END_YEAR}
+                </span>
+              </span>
               <span className="mono" title={variable.sourceDetail}>
                 {variable.source}
               </span>
@@ -302,8 +315,8 @@ function DataContent() {
           <li>MERRA-2 reanalysis — temperature, rainfall, root-zone wetness, snow depth.</li>
           <li>MERRA-2, derived by POWER — relative humidity and wind speed.</li>
           <li>
-            Satellite radiation — solar irradiance and cloud amount, from GEWEX SRB through 2000 and
-            CERES SYN1deg from 2001.
+            Satellite radiation — solar irradiance and cloud amount, from GEWEX SRB through 2000
+            and CERES SYN1deg from 2001. Only the CERES years are tested.
           </li>
         </ul>
         <p>
@@ -334,8 +347,8 @@ function DataContent() {
           February 2000 are disabled because they predate Terra's first granules. If a requested day
           has no coverage, the next days are tried in order — +1, +2, +3, +4, +6, +9 — and the tag
           shows the date actually returned. Clouds and swath edges are retained because the images
-          are context, not evidence for the trend. The satellite record therefore covers less of the
-          span than the 1991–2025 statistical record.
+          are context, not evidence for the trend. The imagery therefore covers less of the span
+          than the reanalysis record.
         </p>
         <a
           className="drawer-link"
@@ -385,10 +398,14 @@ function DataContent() {
         <span className="drawer-step mono">Handling</span>
         <h3>Counts and conventions.</h3>
         <ul>
-          <li>35 annual values per signal, 1991–2025.</li>
-          <li>25 grid cells per case, each with 35 annual values.</li>
-          <li>Roughly 10,500 monthly values are read for a full case.</li>
-          <li>Baseline: 1991–2020. Anomalies are departures from that mean.</li>
+          <li>35 annual values for the reanalysis signals, 1991–2025.</li>
+          <li>25 annual values for solar and cloud, 2001–2025 — the CERES era only.</li>
+          <li>25 grid samples per case, each read over the same window as the signal.</li>
+          <li>Up to roughly 10,500 monthly values are read for a full case.</li>
+          <li>
+            Baseline: 1991–2020, or 2001–2020 for solar and cloud. Anomalies are departures from
+            that mean.
+          </li>
           <li>Cache: local, 14 days. No personal data is stored.</li>
           <li>Units: °C, mm/yr, %, MJ/m²/day, m/s, cm. Soil and sky fractions are scaled to %.</li>
         </ul>

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { VARIABLES } from '../data/variables'
+import { RECORD_START_YEAR } from '../lib/power'
 import { pValue, signed } from '../lib/format'
 import type { SignalSummary, VariableId } from '../types'
 import { Sparkline, SignalChip } from './ui'
@@ -49,7 +50,7 @@ export function SignalMatrix({
                   <VariableGlyph variable={variable} size={14} />
                   {variable.short}
                 </span>
-                <SignalChip significant={signal.trend.significant} direction={signal.trend.direction} compact />
+                <SignalChip significant={signal.survivesFdr} direction={signal.trend.direction} compact />
               </span>
               <span className="signal-card-value">
                 <strong className="num">
@@ -61,8 +62,12 @@ export function SignalMatrix({
               </span>
               <Sparkline points={signal.points} color={variable.color} width={220} height={48} />
               <span className="signal-card-foot">
-                <span className="mono">p {pValue(signal.trend.p)}</span>
-                <span className="mono">{signal.trend.n} yrs</span>
+                <span className="mono">p {pValue(signal.trend.pAdjusted)}</span>
+                <span className="mono">q {pValue(signal.q)}</span>
+                <span className="mono">
+                  {signal.trend.n} yrs
+                  {variable.recordStart > RECORD_START_YEAR ? ` · ${variable.recordStart}+` : ''}
+                </span>
               </span>
               {current === variable.id && <span className="signal-current-flag mono">Open</span>}
             </button>
@@ -70,7 +75,9 @@ export function SignalMatrix({
         })}
       </div>
       <p className="panel-note mono">
-        Eight signals at the same point. Select one to reopen the case with that variable.
+        {complete
+          ? 'Eight signals at one point are eight tests, so the p values are adjusted together at a 5% false-discovery rate (q). Solar and cloud are tested from 2001, where the CERES product begins. Select a signal to reopen the case.'
+          : 'Eight signals at the same point. Select one to reopen the case with that variable. The false-discovery adjustment completes once every record is read.'}
       </p>
     </div>
   )

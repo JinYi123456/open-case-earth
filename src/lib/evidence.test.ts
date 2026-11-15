@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { GridCell, SpatialSummary } from '../types'
+import type { GridCell, SignalSummary, SpatialSummary, TrendStats, VariableId } from '../types'
 import { VARIABLE_MAP } from '../data/variables'
 import {
   STRENGTH_LABEL,
@@ -8,7 +8,7 @@ import {
   evidenceStrength,
   type EvidenceRow,
 } from './evidence'
-import { adjustGrid, analysisFromMonthly, summarizeSpatial } from './analysis'
+import { adjustGrid, adjustSignals, analysisFromMonthly, summarizeSpatial } from './analysis'
 import type { MonthlyRecord } from './power'
 
 function buildMonthly(generator: (year: number, month: number) => number): MonthlyRecord {
@@ -38,6 +38,26 @@ function cell(cellKey: string, pAdjusted: number, direction: GridCell['direction
     years: 35,
     cellKey,
   }
+}
+
+const TREND: TrendStats = {
+  slopePerYear: 0.02,
+  slopePerDecade: 0.2,
+  ciLow: 0.1,
+  ciHigh: 0.3,
+  intercept: 0,
+  p: 0.01,
+  z: 2.5,
+  s: 200,
+  tau: 0.3,
+  n: 35,
+  pAdjusted: 0.01,
+  zAdjusted: 2.5,
+  varianceFactor: 1,
+  serialLags: 0,
+  lag1: 0.2,
+  significant: true,
+  direction: 'up',
 }
 
 const EMPTY_SPATIAL: SpatialSummary = {
@@ -118,6 +138,45 @@ describe('grid adjustment', () => {
   it('returns an empty summary for an empty grid', () => {
     expect(summarizeSpatial([]).total).toBe(0)
     expect(adjustGrid([])).toEqual([])
+  })
+})
+
+describe('signal matrix adjustment', () => {
+  const signal = (variable: VariableId, pAdjusted: number): SignalSummary => ({
+    variable,
+    points: [],
+    trend: { ...TREND, pAdjusted, p: pAdjusted, significant: pAdjusted < 0.05 },
+    q: pAdjusted,
+    survivesFdr: pAdjusted < 0.05,
+  })
+
+  it('adjusts the eight signals together', () => {
+    const adjusted = adjustSignals({
+      T2M: signal('T2M', 0.0001),
+      PRECTOTCORR: signal('PRECTOTCORR', 0.02),
+      CLOUD_AMT: signal('CLOUD_AMT', 0.4),
+    })
+    expect(adjusted.T2M?.q).toBeCloseTo(0.0003, 12)
+    // 0.02 * 3 / 2 = 0.03, still under 0.05.
+    expect(adjusted.PRECTOTCORR?.q).toBeCloseTo(0.03, 12)
+    expect(adjusted.PRECTOTCORR?.survivesFdr).toBe(true)
+    expect(adjusted.CLOUD_AMT?.survivesFdr).toBe(false)
+  })
+
+  it('can withdraw a marginal signal that eight tests would otherwise allow', () => {
+    const adjusted = adjustSignals({
+      T2M: signal('T2M', 0.04),
+      PRECTOTCORR: signal('PRECTOTCORR', 0.5),
+      RH2M: signal('RH2M', 0.6),
+      WS2M: signal('WS2M', 0.7),
+    })
+    expect(adjusted.T2M?.trend.significant).toBe(true)
+    expect(adjusted.T2M?.q).toBeCloseTo(0.16, 12)
+    expect(adjusted.T2M?.survivesFdr).toBe(false)
+  })
+
+  it('leaves an empty matrix alone', () => {
+    expect(adjustSignals({})).toEqual({})
   })
 })
 

@@ -7,7 +7,7 @@ import type {
   SignalSummary,
   VariableId,
 } from '../types'
-import { adjustGrid, analysisFromMonthly, signalFor } from './analysis'
+import { adjustGrid, adjustSignals, analysisFromMonthly, signalFor } from './analysis'
 import {
   fetchMonthly,
   makeGrid,
@@ -96,12 +96,14 @@ export function useCaseData(config: CaseConfig): CaseData {
         (signal) => {
           if (!current()) return
           collected[signal.variable] = signal
-          setSignals({ ...collected })
+          setSignals(adjustSignals(collected))
         },
         controller.signal,
       )
       if (!current()) return
-      signalCache.set(key, collected)
+      const adjusted = adjustSignals(collected)
+      signalCache.set(key, adjusted)
+      setSignals(adjusted)
       setSignalsFailures(failures)
       setSignalsComplete(true)
     }

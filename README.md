@@ -6,7 +6,7 @@
 - **Source** — <https://github.com/JinYi123456/open-case-earth>
 - **Walkthrough** — a 30-second screen recording of one full case: <https://youtu.be/2uEYAag6gvQ>
 
-Open Case: Earth is a planetary-forensics tool. Pick any place on Earth, pull four decades
+Open Case: Earth is a planetary-forensics tool. Pick any place on Earth, pull thirty-five years
 of open Earth-system data, and read the trend as a case file: a verdict, the rate of change,
 the spatial pattern, the seasonal lens, and the evidence that decides whether the finding
 survives scrutiny.
@@ -17,17 +17,21 @@ key, no server-side verdict.
 ## What a case contains
 
 - **Verdict** — a plain-language finding with Sen's slope, a 95% interval, the modelled change
-  over the record, and a confidence level.
-- **The record** — 35 annual values (1991–2025) rebuilt from monthly observations, with a
-  raw/anomaly toggle and CSV export.
-- **Where it changed** — a 5×5 grid of local trends around the point, adjusted together with
-  Benjamini–Hochberg false-discovery control so coincidence cannot pose as pattern.
+  over the record, and a grade (Established / Probable / Tentative / Unresolved) set by the
+  evidence board rather than by the slope.
+- **The record** — annual values rebuilt from monthly observations: 35 years (1991–2025) for the
+  reanalysis signals, 25 years (2001–2025) for solar and cloud, with a raw/anomaly toggle and CSV
+  export.
+- **Where it changed** — a 5×5 grid of local samples around the point. Samples that resolve to the
+  same model cell are collapsed first, then Benjamini–Hochberg false-discovery control runs once
+  per independent cell so coincidence cannot pose as pattern.
 - **Seasonal lens** — DJF / MAM / JJA / SON trends, because the annual average hides the calendar.
 - **Evidence board** — six checks that try to break the claim: significance, spatial agreement,
   seasonal agreement, completeness, endpoint robustness (drop the first and last three years),
   and estimator agreement.
 - **Eight signals** — temperature, rainfall, soil wetness, solar irradiance, cloud cover,
-  humidity, wind, and snow depth at the same point.
+  humidity, wind, and snow depth at the same point, with false-discovery control across the eight
+  tests as well.
 - **Landscape context** — a MODIS Terra true-color swipe comparison with selectable years
   (2000–2025) and month, opening on July 2002 vs July 2024.
 - **Export** — a shareable case card (PNG) with a QR code back to the live analysis, plus a
@@ -39,15 +43,18 @@ key, no server-side verdict.
 | --- | --- |
 | Rate | Sen's slope — median of all pairwise slopes, resistant to a single extreme year |
 | Test | Mann–Kendall with tie correction and continuity correction |
-| Interval | Rank-based Sen 95% confidence interval |
+| Persistence | Hamed–Rao variance correction on Sen-detrended residual ranks, screened at ±1.96/√n |
+| Interval | Rank-based Sen 95% confidence interval (Sen 1968, eq. 2.6) |
 | Cross-check | Ordinary least-squares slope |
-| Spatial | Benjamini–Hochberg FDR at 5% across 25 cells |
-| Baseline | 1991–2020 mean for anomalies |
+| Spatial | Samples collapsed to independent model cells, then Benjamini–Hochberg FDR at 5% |
+| Matrix | Benjamini–Hochberg FDR at 5% across the eight signals |
+| Baseline | 1991–2020 mean for anomalies, 2001–2020 for solar and cloud |
 | Seasons | DJF pairs the previous December with January and February |
 
-A trend is reported as significant at `p < 0.05` with at least 15 complete years. Absence of a
-signal is treated as a result, not a failure. The method drawer documents every formula and the
-limits of the verdict (it is not attribution; reanalysis is not a station measurement).
+Significance is judged on the serial-corrected `p < 0.05` with at least 15 complete years.
+Absence of a signal is treated as a result, not a failure. The method drawer documents every
+formula and the limits of the verdict (it is not attribution; reanalysis is not a station
+measurement; Hamed–Rao addresses serial correlation, not a step change inside the record).
 
 ## Data sources
 
@@ -56,7 +63,8 @@ limits of the verdict (it is not attribution; reanalysis is not a station measur
   - MERRA-2 reanalysis — `T2M`, `PRECTOTCORR`, `GWETROOT`, `SNODP`.
   - MERRA-2, derived by POWER — `RH2M`, `WS2M`.
   - Satellite radiation — `ALLSKY_SFC_SW_DWN`, `CLOUD_AMT`: GEWEX SRB through 2000, CERES SYN1deg
-    from 2001.
+    from 2001. Only the CERES era (2001–2025) is tested, so the product switch cannot be read as a
+    trend.
 - **NASA GIBS** — Blue Marble basemap (globe and spatial grid) and MODIS Terra
   corrected-reflectance true color.
 - **Photon / OpenStreetMap** — place search and reverse geocoding.

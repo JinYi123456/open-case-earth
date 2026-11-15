@@ -74,6 +74,32 @@ describe('analysisFromMonthly', () => {
     expect(djf?.points[0].value).toBeCloseTo(6, 10)
   })
 
+  it('tests the satellite pair only inside the CERES era', () => {
+    // A flat record with a −14 product step at 2001 and no real trend anywhere.
+    const monthly = buildMonthly((year) => (year <= 2000 ? 30 : 16))
+    for (const id of ['ALLSKY_SFC_SW_DWN', 'CLOUD_AMT'] as const) {
+      const def = VARIABLE_MAP[id]
+      const series = aggregateAnnual(monthly, def)
+      expect(series.yearsExpected).toBe(25)
+      expect(series.points).toHaveLength(25)
+      expect(series.points[0].year).toBe(2001)
+
+      const analysis = analysisFromMonthly(monthly, def)
+      expect(analysis.baselineStart).toBe(2001)
+      expect(analysis.baselineEnd).toBe(2020)
+      expect(analysis.baselineYears).toBe(20)
+      expect(analysis.seasonal[0].points[0].year).toBe(2001)
+      expect(analysis.trend.slopePerDecade).toBe(0)
+      expect(analysis.trend.significant).toBe(false)
+    }
+    // Reading the same record across the step fools the uncorrected test.
+    const full = analysisFromMonthly(monthly, VARIABLE_MAP.T2M)
+    expect(full.baselineStart).toBe(1991)
+    expect(full.annual.yearsExpected).toBe(35)
+    expect(full.trend.direction).toBe('down')
+    expect(full.trend.p).toBeLessThan(0.05)
+  })
+
   it('produces a percentile-based verdict in both directions', () => {
     const monthly = buildMonthly((year) => 20 + (year - 1991) * 0.2)
     const analysis = analysisFromMonthly(monthly, VARIABLE_MAP.T2M)

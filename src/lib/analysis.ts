@@ -16,12 +16,7 @@ import { VARIABLE_MAP } from '../data/variables'
 import { confidenceFromP, fmt, pValue, signed } from './format'
 import { STRENGTH_LABEL, evidenceScore, evidenceStrength, type EvidenceRow } from './evidence'
 import { mean, benjaminiHochberg, olsSlope, trendFromPoints } from './stats'
-import {
-  RECORD_END_YEAR,
-  RECORD_START_YEAR,
-  RECORD_YEARS,
-  type MonthlyRecord,
-} from './power'
+import { FETCH_START_YEAR, RECORD_END_YEAR, type MonthlyRecord } from './power'
 
 export const BASELINE_START = 1991
 export const BASELINE_END = 2020
@@ -88,7 +83,7 @@ function minMonths(def: VariableDef): number {
 
 export function aggregateAnnual(monthly: MonthlyRecord, def: VariableDef): AnnualSeries {
   const points: SeriesPoint[] = []
-  for (let year = RECORD_START_YEAR; year <= RECORD_END_YEAR; year += 1) {
+  for (let year = def.recordStart; year <= RECORD_END_YEAR; year += 1) {
     let total = 0
     let months = 0
     for (let month = 1; month <= 12; month += 1) {
@@ -110,7 +105,7 @@ export function aggregateAnnual(monthly: MonthlyRecord, def: VariableDef): Annua
   }
   return {
     points,
-    yearsExpected: RECORD_YEARS,
+    yearsExpected: RECORD_END_YEAR - def.recordStart + 1,
     yearsAvailable: points.length,
   }
 }
@@ -121,12 +116,12 @@ export function aggregateSeason(
   season: (typeof SEASONS)[number],
 ): SeriesPoint[] {
   const points: SeriesPoint[] = []
-  for (let year = RECORD_START_YEAR; year <= RECORD_END_YEAR; year += 1) {
+  for (let year = def.recordStart; year <= RECORD_END_YEAR; year += 1) {
     let total = 0
     let months = 0
     for (const entry of season.months) {
       const targetYear = year + entry.offset
-      if (targetYear < 1990) continue
+      if (targetYear < FETCH_START_YEAR) continue
       const value = monthly[key(targetYear, entry.month)]
       if (value === undefined) continue
       months += 1
@@ -155,15 +150,16 @@ export function analysisFromMonthly(monthly: MonthlyRecord, def: VariableDef): P
   const trend = trendFromPoints(annual.points)
   const ols = olsSlope(annual.points.map((p) => ({ x: p.year, y: p.value })))
 
+  const baselineStart = Math.max(BASELINE_START, def.recordStart)
   const baselinePoints = annual.points.filter(
-    (p) => p.year >= BASELINE_START && p.year <= BASELINE_END,
+    (p) => p.year >= baselineStart && p.year <= BASELINE_END,
   )
   const baseline = mean(
     (baselinePoints.length >= 20 ? baselinePoints : annual.points).map((p) => p.value),
   )
 
   const trimmedPoints = annual.points.filter(
-    (p) => p.year >= RECORD_START_YEAR + 3 && p.year <= RECORD_END_YEAR - 3,
+    (p) => p.year >= def.recordStart + 3 && p.year <= RECORD_END_YEAR - 3,
   )
   const trimmed = trendFromPoints(trimmedPoints)
 
@@ -199,6 +195,8 @@ export function analysisFromMonthly(monthly: MonthlyRecord, def: VariableDef): P
       value: point.value - baseline,
     })),
     baseline,
+    baselineStart,
+    baselineEnd: BASELINE_END,
     baselineYears: (baselinePoints.length >= 20 ? baselinePoints : annual.points).length,
     seasonal,
     first,
@@ -215,11 +213,34 @@ export function analysisFromMonthly(monthly: MonthlyRecord, def: VariableDef): P
 export function signalFor(monthly: MonthlyRecord, variable: VariableId): SignalSummary {
   const def = VARIABLE_MAP[variable]
   const annual = aggregateAnnual(monthly, def)
+  const trend = trendFromPoints(annual.points)
   return {
     variable,
     points: annual.points,
-    trend: trendFromPoints(annual.points),
+    trend,
+    q: trend.pAdjusted,
+    survivesFdr: trend.significant,
   }
+}
+
+/** The eight signals are eight tests at one point, so they are adjusted together. */
+export function adjustSignals(
+  signals: Partial<Record<VariableId, SignalSummary>>,
+): Partial<Record<VariableId, SignalSummary>> {
+  const entries = Object.values(signals).filter(
+    (signal): signal is SignalSummary => signal !== undefined,
+  )
+  if (entries.length === 0) return signals
+  const { q } = benjaminiHochberg(entries.map((signal) => signal.trend.pAdjusted))
+  const output: Partial<Record<VariableId, SignalSummary>> = { ...signals }
+  entries.forEach((signal, index) => {
+    output[signal.variable] = {
+      ...signal,
+      q: q[index],
+      survivesFdr: q[index] <= 0.05 && signal.trend.n >= 15,
+    }
+  })
+  return output
 }
 
 export function buildVerdict(

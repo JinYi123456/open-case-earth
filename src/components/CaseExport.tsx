@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 import type { CaseConfig, PointAnalysis, SeriesPoint, VariableDef, Verdict } from '../types'
 import { caseNumber, fmt, formatCoords, signed } from '../lib/format'
+import { RECORD_END_YEAR } from '../lib/power'
 import { LogoMark } from './Icons'
 
 function ExportChart({
@@ -106,7 +107,7 @@ export function CaseExport({
         </div>
 
         <div className="export-chart">
-          <span className="mono">ANNUAL RECORD · 1991—2025</span>
+          <span className="mono">ANNUAL RECORD · {analysis.first.year}—{analysis.latest.year}</span>
           <ExportChart
             points={analysis.annual.points}
             color={variable.color}
@@ -134,7 +135,7 @@ export function CaseExport({
             <strong>
               {fmt(analysis.baseline, variable.decimals, )} {variable.annualUnit}
             </strong>
-            <span className="mono">1991–2020 mean</span>
+            <span className="mono">{analysis.baselineStart}–{analysis.baselineEnd} mean</span>
           </div>
         </div>
 
@@ -143,7 +144,7 @@ export function CaseExport({
         <div className="export-bottom">
           <div className="export-source">
             <span className="mono">RECORD</span>
-            <strong>1991—2025</strong>
+            <strong>{variable.recordStart}—{RECORD_END_YEAR}</strong>
             <span className="mono">NASA POWER / {variable.source} · analysis in browser</span>
           </div>
           <div className="export-qr-wrap">

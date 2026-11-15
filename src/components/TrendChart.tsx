@@ -256,7 +256,7 @@ export function TrendChart({ analysis, variable, mode }: TrendChartProps) {
               y={y(0) - 7}
               className="chart-zero-label"
             >
-              1991–2020 average
+              {analysis.baselineStart}–{analysis.baselineEnd} average
             </text>
           )}
 

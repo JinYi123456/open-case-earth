@@ -3464,6 +3464,17 @@
   gap: 2px;
 }
 
+.data-row .data-annual {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.data-row .data-annual > span:last-child {
+  color: var(--muted-2);
+}
+
 .data-row strong {
   font-size: 13px;
   font-weight: 500;

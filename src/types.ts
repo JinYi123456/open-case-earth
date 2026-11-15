@@ -33,6 +33,9 @@ export interface VariableDef {
   annualUnit: string
   slopeUnit: string
   aggregate: Aggregate
+  /** First year analysed: the satellite pair switches upstream product in 2001. */
+  recordStart: number
+  recordNote?: string
   scale: number
   decimals: number
   slopeDecimals: number
@@ -119,6 +122,8 @@ export interface PointAnalysis {
   olsSlopePerDecade: number
   anomaly: SeriesPoint[]
   baseline: number
+  baselineStart: number
+  baselineEnd: number
   baselineYears: number
   seasonal: SeasonalTrend[]
   first: SeriesPoint
@@ -173,6 +178,8 @@ export interface SignalSummary {
   variable: VariableId
   points: SeriesPoint[]
   trend: TrendStats
+  q: number
+  survivesFdr: boolean
 }
 
 export type LoadPhase = 'idle' | 'locating' | 'observations' | 'analysis' | 'ready' | 'error'

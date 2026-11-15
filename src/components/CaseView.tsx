@@ -20,6 +20,7 @@ import {
   pValue,
   signed,
 } from '../lib/format'
+import { RECORD_END_YEAR } from '../lib/power'
 import { shareUrl } from '../lib/urlState'
 import { useCaseData } from '../lib/useCaseData'
 import type { CaseConfig, VariableId } from '../types'
@@ -32,6 +33,8 @@ import { SeasonPanel } from './SeasonPanel'
 import { SignalMatrix } from './SignalMatrix'
 import { TrendChart, type ChartMode } from './TrendChart'
 import { SectionHead, VariableBadge } from './ui'
+
+const YEAR_WORDS: Record<number, string> = { 35: 'Thirty-five', 25: 'Twenty-five' }
 
 interface CaseViewProps {
   config: CaseConfig
@@ -110,7 +113,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
 
   function downloadCsv() {
     if (!data.analysis) return
-    const header = `year,${variable.id}_annual,anomaly_vs_1991_2020,months_used\n`
+    const header = `year,${variable.id}_annual,anomaly_vs_${data.analysis.baselineStart}_${data.analysis.baselineEnd},months_used\n`
     const rows = data.analysis.annual.points
       .map((point, index) => {
         const anomaly = data.analysis?.anomaly[index]?.value ?? 0
@@ -213,7 +216,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
           </div>
           <div className="case-meta">
             <VariableBadge variable={variable} />
-            <span className="chip">1991—2025</span>
+            <span className="chip">{variable.recordStart}—{RECORD_END_YEAR}</span>
             <span className="chip">
               {SCOPES[config.scope].label} · ±{SCOPES[config.scope].extent}°
             </span>
@@ -312,7 +315,8 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
 
           <div className="verdict-foot mono">
             <span>
-              Baseline 1991–2020 · {fmt(analysis.baseline, variable.decimals)} {variable.annualUnit}
+              Baseline {analysis.baselineStart}–{analysis.baselineEnd} ·{' '}
+              {fmt(analysis.baseline, variable.decimals)} {variable.annualUnit}
             </span>
             <span>
               {analysis.annual.yearsAvailable} complete years · NASA POWER / {variable.source}
@@ -325,7 +329,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
         <SectionHead
           index="01"
           eyebrow="The record"
-          title="Thirty-five years, one line."
+          title={`${YEAR_WORDS[analysis.annual.yearsExpected] ?? analysis.annual.yearsExpected} years, one line.`}
           aside={
             <div className="chart-controls">
               <div className="seg" role="group" aria-label="Chart mode">
@@ -395,7 +399,8 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
           </div>
           <p className="chart-note">
             The dashed line is the median pairwise slope; the shaded wedge is its 95% interval.
-            Anomalies are departures from the 1991–2020 mean.
+            Anomalies are departures from the {analysis.baselineStart}–{analysis.baselineEnd} mean.
+            {variable.recordNote ? ` ${variable.recordNote}` : ''}
           </p>
         </div>
       </section>
@@ -621,7 +626,7 @@ function CaseLoading({ place, variableLabel }: { place: string; variableLabel: s
           </div>
           <div className="loading-step">
             <span />
-            Aggregate 1991–2025
+            Aggregate the annual series
           </div>
           <div className="loading-step">
             <span />

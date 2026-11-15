@@ -1,4 +1,10 @@
 import type { ScopeId, VariableDef, VariableId } from '../types'
+import { RECORD_START_YEAR } from '../lib/power'
+
+/** GEWEX SRB ends in 2000; CERES SYN1deg starts in 2001. */
+export const CERES_START_YEAR = 2001
+const CERES_NOTE =
+  'Solar and cloud switch upstream product in 2001, from GEWEX SRB to CERES SYN1deg. Only the CERES era is tested, so the product step cannot be read as a trend.'
 
 export const VARIABLES: VariableDef[] = [
   {
@@ -10,6 +16,7 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: '°C',
     slopeUnit: '°C',
     aggregate: 'mean',
+    recordStart: RECORD_START_YEAR,
     scale: 1,
     decimals: 2,
     slopeDecimals: 3,
@@ -36,6 +43,7 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: 'mm/yr',
     slopeUnit: 'mm',
     aggregate: 'sum',
+    recordStart: RECORD_START_YEAR,
     scale: 1,
     decimals: 0,
     slopeDecimals: 1,
@@ -62,6 +70,7 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: '%',
     slopeUnit: 'pp',
     aggregate: 'mean',
+    recordStart: RECORD_START_YEAR,
     scale: 100,
     decimals: 1,
     slopeDecimals: 2,
@@ -88,11 +97,13 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: 'MJ/m²/day',
     slopeUnit: 'MJ/m²',
     aggregate: 'mean',
+    recordStart: CERES_START_YEAR,
+    recordNote: CERES_NOTE,
     scale: 1,
     decimals: 2,
     slopeDecimals: 3,
     source: 'SRB · CERES SYN1deg',
-    sourceDetail: 'Satellite radiation: GEWEX SRB to 2000, CERES SYN1deg from 2001',
+    sourceDetail: 'Satellite radiation: CERES SYN1deg, tested 2001–2025; the earlier GEWEX SRB era is excluded',
     blurb: 'Downward shortwave radiation reaching the surface.',
     color: '#ffc27d',
     upColor: '#ffc27d',
@@ -114,11 +125,13 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: '%',
     slopeUnit: 'pp',
     aggregate: 'mean',
+    recordStart: CERES_START_YEAR,
+    recordNote: CERES_NOTE,
     scale: 1,
     decimals: 1,
     slopeDecimals: 2,
     source: 'SRB · CERES SYN1deg',
-    sourceDetail: 'Satellite cloud fraction: GEWEX SRB to 2000, CERES SYN1deg from 2001',
+    sourceDetail: 'Satellite cloud fraction: CERES SYN1deg, tested 2001–2025; the earlier GEWEX SRB era is excluded',
     blurb: 'Mean sky fraction covered by cloud.',
     color: '#9bd8e8',
     upColor: '#9bd8e8',
@@ -140,6 +153,7 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: '%',
     slopeUnit: 'pp',
     aggregate: 'mean',
+    recordStart: RECORD_START_YEAR,
     scale: 1,
     decimals: 1,
     slopeDecimals: 2,
@@ -166,6 +180,7 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: 'm/s',
     slopeUnit: 'm/s',
     aggregate: 'mean',
+    recordStart: RECORD_START_YEAR,
     scale: 1,
     decimals: 2,
     slopeDecimals: 3,
@@ -192,6 +207,7 @@ export const VARIABLES: VariableDef[] = [
     annualUnit: 'cm',
     slopeUnit: 'cm',
     aggregate: 'mean',
+    recordStart: RECORD_START_YEAR,
     scale: 1,
     decimals: 1,
     slopeDecimals: 2,
