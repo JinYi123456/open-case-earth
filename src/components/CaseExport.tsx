@@ -141,7 +141,7 @@ export function CaseExport({
           <div className="export-source">
             <span className="mono">RECORD</span>
             <strong>1991—2025</strong>
-            <span className="mono">NASA POWER / MERRA-2 · analysis in browser</span>
+            <span className="mono">NASA POWER / {variable.source} · analysis in browser</span>
           </div>
           <div className="export-qr-wrap">
             {qr && <img src={qr} alt="" className="export-qr" />}

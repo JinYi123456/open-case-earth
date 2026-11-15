@@ -36,6 +36,8 @@ export interface VariableDef {
   scale: number
   decimals: number
   slopeDecimals: number
+  source: string
+  sourceDetail: string
   blurb: string
   color: string
   upColor: string

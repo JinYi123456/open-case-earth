@@ -214,7 +214,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
             <span className="chip">
               {SCOPES[config.scope].label} · ±{SCOPES[config.scope].extent}°
             </span>
-            <span className="chip">MERRA-2</span>
+            <span className="chip">{variable.source}</span>
           </div>
         </div>
 
@@ -306,7 +306,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
               Baseline 1991–2020 · {fmt(analysis.baseline, variable.decimals)} {variable.annualUnit}
             </span>
             <span>
-              {analysis.annual.yearsAvailable} complete years · NASA POWER / MERRA-2
+              {analysis.annual.yearsAvailable} complete years · NASA POWER / {variable.source}
             </span>
           </div>
         </div>
@@ -558,7 +558,7 @@ export function CaseView({ config, onBack, onOpenMethod, onOpenData, onVariable 
             </button>
           </div>
           <p className="case-end-source mono">
-            NASA POWER / MERRA-2 · NASA GIBS · Photon / OpenStreetMap
+            NASA POWER · NASA GIBS · Photon / OpenStreetMap
           </p>
         </div>
       </section>

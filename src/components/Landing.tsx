@@ -319,7 +319,7 @@ export function Landing({ onStart, onOpenMethod, onOpenData }: LandingProps) {
               <a href="https://power.larc.nasa.gov/" target="_blank" rel="noreferrer">
                 <span>
                   <strong>NASA POWER</strong>
-                  <span className="mono">Monthly point records · MERRA-2</span>
+                  <span className="mono">Monthly point records · MERRA-2 + CERES</span>
                 </span>
                 <ArrowUpRight size={15} />
               </a>

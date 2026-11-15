@@ -45,7 +45,12 @@ limits of the verdict (it is not attribution; reanalysis is not a station measur
 
 ## Data sources
 
-- **NASA POWER** — monthly point API, MERRA-2 reanalysis (atmospheric and land variables).
+- **NASA POWER** — monthly point API (`community=AG`, 1990–2025). Upstream products, as named by
+  the API response header:
+  - MERRA-2 reanalysis — `T2M`, `PRECTOTCORR`, `GWETROOT`, `SNODP`.
+  - MERRA-2, derived by POWER — `RH2M`, `WS2M`.
+  - Satellite radiation — `ALLSKY_SFC_SW_DWN`, `CLOUD_AMT`: GEWEX SRB through 2000, CERES SYN1deg
+    from 2001.
 - **NASA GIBS** — Blue Marble basemap (globe and spatial grid) and MODIS Terra
   corrected-reflectance true color.
 - **Photon / OpenStreetMap** — place search and reverse geocoding.

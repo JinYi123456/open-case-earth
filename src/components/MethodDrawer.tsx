@@ -5,6 +5,12 @@ import { LogoMark } from './Icons'
 
 export type DrawerMode = 'method' | 'data'
 
+const ACCESSED = new Date().toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+})
+
 interface MethodDrawerProps {
   mode: DrawerMode | null
   onClose: () => void
@@ -95,7 +101,8 @@ function MethodContent() {
         <span className="drawer-step mono">01 · the record</span>
         <h3>Thirty-five annual values, rebuilt from monthly observations.</h3>
         <p>
-          Each point is a reanalysis cell from NASA POWER (MERRA-2), sampled at the case coordinate.
+          Each point is a NASA POWER monthly grid cell sampled at the case coordinate — MERRA-2
+          reanalysis for the atmospheric and land signals, satellite radiation for solar and cloud.
           Monthly values are validated, then reduced to one value per year.
         </p>
         <ul>
@@ -172,8 +179,12 @@ function MethodContent() {
             greenhouse gases or land-use change.
           </li>
           <li>
-            MERRA-2 is a reanalysis on a roughly 0.5° × 0.625° grid, not a station measurement.
-            Local exposure can differ.
+            Every value is a grid-cell average, not a station measurement: MERRA-2 on roughly
+            0.5° × 0.625°, the radiation products on a 1° grid. Local exposure can differ.
+          </li>
+          <li>
+            Solar and cloud switch upstream product in 2001, from GEWEX SRB to CERES SYN1deg. A
+            small step at that boundary is possible, so read radiation trends with extra care.
           </li>
           <li>
             Annual aggregation hides extremes. A flat annual mean can still contain more violent
@@ -216,7 +227,7 @@ function DataContent() {
   return (
     <div className="prose">
       <p className="drawer-lede">
-        Eight Earth-system variables, one monthly source, one imagery source, one geocoder. Nothing
+        Eight Earth-system variables from one monthly API, one imagery service, one geocoder. Nothing
         is hidden behind an account.
       </p>
 
@@ -227,6 +238,7 @@ function DataContent() {
             <span>Variable</span>
             <span>Unit</span>
             <span>Annual</span>
+            <span>Upstream source</span>
           </div>
           {VARIABLES.map((variable) => (
             <div className="data-row" key={variable.id}>
@@ -236,6 +248,9 @@ function DataContent() {
               </span>
               <span className="mono">{variable.annualUnit}</span>
               <span className="mono">{variable.aggregate === 'sum' ? 'Sum' : 'Mean'}</span>
+              <span className="mono" title={variable.sourceDetail}>
+                {variable.source}
+              </span>
             </div>
           ))}
         </div>
@@ -249,9 +264,21 @@ function DataContent() {
         <span className="drawer-step mono">Primary source</span>
         <h3>NASA POWER · monthly point API</h3>
         <p>
-          Prediction Of Worldwide Energy Resources, using MERRA-2 reanalysis for atmospheric and
-          land variables. The request asks for monthly values from 1990 through 2025 at the exact
-          case coordinate. Values flagged as missing (−999) are discarded.
+          Prediction Of Worldwide Energy Resources serves several upstream NASA products through one
+          API. Its response header names them on every request, and the case chip shows the source
+          that belongs to the selected signal:
+        </p>
+        <ul>
+          <li>MERRA-2 reanalysis — temperature, rainfall, root-zone wetness, snow depth.</li>
+          <li>MERRA-2, derived by POWER — relative humidity and wind speed.</li>
+          <li>
+            Satellite radiation — solar irradiance and cloud amount, from GEWEX SRB through 2000 and
+            CERES SYN1deg from 2001.
+          </li>
+        </ul>
+        <p>
+          The request asks for monthly values from 1990 through 2025 at the exact case coordinate.
+          Values flagged as missing (−999) are discarded.
         </p>
         <a
           className="drawer-link"
@@ -335,8 +362,8 @@ function DataContent() {
       <section>
         <span className="drawer-step mono">Suggested citation</span>
         <code>
-          NASA POWER Project. Monthly point data, MERRA-2. NASA Langley Research Center. Accessed
-          14 November 2026.
+          NASA POWER Project. Monthly point data: MERRA-2; CERES SYN1deg; GEWEX SRB. NASA Langley
+          Research Center. Accessed {ACCESSED}.
         </code>
         <code>
           NASA GIBS. MODIS Terra Corrected Reflectance True Color, 15 July 2002 and 15 July 2024.
